@@ -2,10 +2,16 @@
 #include "multicast.h"
 
 #include <signal.h>
+#include <thread>
 
 void help();
 
 void procExit(int signo);
+
+bool isStop = false;
+
+void send(std::string addr);
+void recv(std::string addr);
 
 int main(int argc,char **argv)
 {
@@ -23,6 +29,15 @@ int main(int argc,char **argv)
     std::cout<< "method:" << m<<std::endl;
     std::cout<< "addr:" << addr <<std::endl;
 
+    if(m == "send")
+    {
+        send(addr);
+    }
+    else
+    {
+        recv(addr);
+    }
+
     return 0;
 }
 
@@ -35,14 +50,39 @@ void help()
 void procExit(int signo)
 {
     std::cout<<"multicast recv signal:"<<signo<<" to exit"<<std::endl;
+    isStop = true;
 }
 
-void send()
+void send(std::string addr)
 {
+    std::cout<<"send is running"<<std::endl;
+    PubMultiCast sender(addr);
+    char buf[4096] = {0};
+    int index = 0;
 
+    while(!isStop)
+    {
+        sprintf(buf,"send msg index:%d",index++);
+        sender.SendMsg(buf,strlen(buf));
+        sleep(1);
+    }
 }
 
-void recv()
+void recv(std::string addr)
 {
+    std::cout<<"recv is running"<<std::endl;
+    SubMultiCast recver(addr);
+    char buf[4096] = {0};
+    int n  = 0;
 
+    while(!isStop)
+    {
+        n = recver.RecvMsg(buf,4096);
+        if(n <= 0)
+        {
+            std::this_thread::yield();
+            continue;
+        }
+        std::cout<<buf<<", n:"<<n<<std::endl;
+    }
 }
