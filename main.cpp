@@ -19,7 +19,7 @@ int main(int argc,char **argv)
     signal(SIGTERM,procExit);
 
     std::string m = "send";
-    std::string addr = "224.1.0.104:1235,127.0.0.1";
+    std::string addr = "224.1.0.104:10021,172.18.0.1";
 
     Option opt(argc,argv,help);
     opt.addOpt(m,"m:");
@@ -59,11 +59,13 @@ void send(std::string addr)
     PubMultiCast sender(addr);
     char buf[4096] = {0};
     int index = 0;
+    int n  = 0;
 
     while(!isStop)
     {
         sprintf(buf,"send msg index:%d",index++);
-        sender.SendMsg(buf,strlen(buf));
+        n = sender.SendMsg(buf,strlen(buf));
+        std::cout<<"n:"<<n<<std::endl;
         sleep(1);
     }
 }
